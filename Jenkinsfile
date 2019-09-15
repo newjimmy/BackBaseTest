@@ -27,10 +27,13 @@ pipeline {
     }
     stages {
         stage("Validate params") {
-            script {
-                validateParam("REPOSITORY", params.REPOSITORY)
-                validateParam("BRANCH", params.BRANCH)
+            steps{
+                script {
+                    validateParam("REPOSITORY", params.REPOSITORY)
+                    validateParam("BRANCH", params.BRANCH)
+                }
             }
+
         }
         stage("Checkout repo"){
             steps{
