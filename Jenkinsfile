@@ -23,8 +23,8 @@ pipeline {
     }
 
     parameters{
-        string(name: 'REPOSITORY', defaultValue: 'test', description: 'Repository name under corporate git like a https://github.com/newjimmy/BackBaseTest')
-        string(name: 'BRANCH', defaultValue: 'dev')
+        string(name: 'REPOSITORY', defaultValue: 'test', description: 'Repository name under corporate git like a https://github.com/newjimmy/test')
+        string(name: 'BRANCH', defaultValue: 'master')
     }
 
     stages {
@@ -48,10 +48,12 @@ pipeline {
         }
         // Checking coding style
         stage('SonarQube analysis') {
-            def scannerHome = tool 'SonarScanner 4.0';
-                    withSonarQubeEnv('My SonarQube Server') {
+            steps{
+                sh 'ls -la'
+                    withSonarQubeEnv('SonarQubeCloud') {
                                     sh 'mvn clean package sonar:sonar'
                     }
+            }
         }
 
         stage('Build') {
@@ -79,20 +81,20 @@ pipeline {
             }
         }
 
-        stage("Push package") {
-             steps {
-                 script {
-                     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'ArtifactoryPassword', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-                        withDockerContainer(image: 'private-docker-registry.org.com/java-mvn', args: '-u root:root') {
-
-                            sh '''
-
-                                '''
-                        }
-                     }
-                 }
-             }
-        }
+        //stage("Push package") {
+        //     steps {
+        //         script {
+        //             withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'ArtifactoryPassword', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+        //                withDockerContainer(image: 'private-docker-registry.org.com/java-mvn', args: '-u root:root') {
+        //
+        //                    sh '''
+        //
+        //                        '''
+        //                }
+        //             }
+        //         }
+        //     }
+        //}
     }
 
 }
