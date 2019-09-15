@@ -4,7 +4,7 @@ def validateParam(KEY, VAL) {
     if (VAL == null || VAL == '') {
         currentBuild.result = 'ABORTED'
         def err = KEY + " was not defined. Aborted."
-        currentBuild.displayName = "#${BUILD_NUMBER} [ENV: ${KUBERNETES_ENVIRONMENT}] [REPO: ${REPOSITORY}] [BRANCH: ${BRANCH}] - ${err}"
+        currentBuild.displayName = "#[REPO: ${REPOSITORY}] [BRANCH: ${BRANCH}] - ${err}"
         echo err
         error(err)
     }
@@ -21,10 +21,12 @@ pipeline {
             label "docker"
         }
     }
+
     parameters{
-        string(name: 'REPOSITORY', defaultValue: 'test', description: 'Repository name under corporate git like a https://bitbucket.com/projects/K8S')
+        string(name: 'REPOSITORY', defaultValue: 'test', description: 'Repository name under corporate git like a https://github.com/newjimmy/BackBaseTest')
         string(name: 'BRANCH', defaultValue: 'dev')
     }
+
     stages {
         stage("Validate params") {
             steps{
@@ -33,44 +35,33 @@ pipeline {
                     validateParam("BRANCH", params.BRANCH)
                 }
             }
-
         }
+
         stage("Checkout repo"){
             steps{
                 script {
                     checkout scm: [$class           : 'GitSCM',
-                                   userRemoteConfigs: [[url: "https://bitbucket.com/projects/K8S/${params.REPOSITORY}.git", credentialsId: '65532f8a-77d0-4191-9e45-d10a2c37c772']],
+                                   userRemoteConfigs: [[url: "https://github.com/newjimmy/${params.REPOSITORY}.git", credentialsId: 'SECURED_CREDENTIALS']],
                                    branches         : [[name: "${params.BRANCH}"]]], changelog: false, poll: false
-                    sh "cd helm/flux && ls -la"
                 }
             }
         }
         // Checking coding style
-        stage('Lint') {
-            steps {
-                echo "Make some magic running \"lint\" and other tools to make sure what our code is clean so on "
-                script {
-                    withDockerContainer(image: 'private-docker-registry.org.com/java-lint', args: '-u root:root') {
-
-                        sh '''
-                        
-                        env
-                        '''
+        stage('SonarQube analysis') {
+            def scannerHome = tool 'SonarScanner 4.0';
+                    withSonarQubeEnv('My SonarQube Server') { // If you have configured more than one global server connection, you can specify its name
+                        sh "${scannerHome}/bin/sonar-scanner"
                     }
-
-                }
-            }
         }
+
         stage('Build') {
             steps {
                 script {
-                    withDockerContainer(image: 'private-docker-registry.org.com/java-mvn', args: '-u root:root') {
-
+                    withDockerContainer(image: 'maven', args: '-u root:root') {
                         sh '''
                         mvn -B -DskipTests clean package
                         '''
                     }
-
                 }
             }
         }
@@ -78,16 +69,30 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    withDockerContainer(image: 'private-docker-registry.org.com/java-mvn', args: '-u root:root') {
+                    withDockerContainer(image: 'maven', args: '-u root:root') {
 
                         sh '''
                         mvn test
                         '''
                     }
-
                 }
             }
         }
 
+        stage("Push package") {
+             steps {
+                 script {
+                     withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'ArtifactoryPassword', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                        withDockerContainer(image: 'private-docker-registry.org.com/java-mvn', args: '-u root:root') {
+
+                            sh '''
+
+                                '''
+                        }
+                     }
+                 }
+             }
+        }
     }
+
 }
