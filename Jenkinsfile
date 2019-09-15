@@ -51,7 +51,7 @@ pipeline {
             def scannerHome = tool 'SonarScanner 4.0';
                     withSonarQubeEnv('My SonarQube Server') {
                                     sh 'mvn clean package sonar:sonar'
-                                  }
+                    }
         }
 
         stage('Build') {
