@@ -41,7 +41,7 @@ pipeline {
             steps{
                 script {
                     checkout scm: [$class           : 'GitSCM',
-                                   userRemoteConfigs: [[url: "https://github.com/newjimmy/${params.REPOSITORY}.git", credentialsId: 'SECURED_CREDENTIALS']],
+                                   userRemoteConfigs: [[url: "https://github.com/newjimmy/${params.REPOSITORY}.git", credentialsId: 'f62efb8e-1eee-4051-b700-95347b4de85a']],
                                    branches         : [[name: "${params.BRANCH}"]]], changelog: false, poll: false
                 }
             }
