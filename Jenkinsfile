@@ -19,6 +19,7 @@ pipeline {
     agent {
         node {
             label "docker"
+             customWorkspace "/var/lib/jenkins/workspace/BuildApplication/$env.BUILD_NUMBER"
         }
     }
 
@@ -80,21 +81,14 @@ pipeline {
                 }
             }
         }
-
-        //stage("Push package") {
-        //     steps {
-        //         script {
-        //             withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'ArtifactoryPassword', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-        //                withDockerContainer(image: 'private-docker-registry.org.com/java-mvn', args: '-u root:root') {
-        //
-        //                    sh '''
-        //
-        //                        '''
-        //                }
-        //             }
-        //         }
-        //     }
-        //}
+        
+        //In this place we should push our artifact to the remote repository
+        stage("Push package") {
+            steps {
+                echo 'Pushing....'
+            }
+        }
+        
     }
 
 }
